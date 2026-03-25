@@ -16,7 +16,9 @@ app.use("/api/draw", require("./routes/drawRoutes"));
 app.use("/api/entry", require("./routes/entryRoutes"));
 app.use("/api/winner", require("./routes/winnerRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
-
+app.get("/", (req, res) => {
+  res.json( "Golf charity API is running successfully" );
+});
 // Error Middleware
 app.use(errorHandler);
 
