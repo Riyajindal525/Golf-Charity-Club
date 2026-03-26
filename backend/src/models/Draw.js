@@ -18,7 +18,8 @@ const drawSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
         },
-        matchCount: Number, // 3, 4, 5
+        position: Number, // 1, 2, 3
+        prize: Number,
       },
     ],
 

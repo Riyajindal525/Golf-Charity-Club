@@ -1,39 +1,49 @@
 const Winner = require("../models/Winner");
 
-// 🎯 Count matches
+const MIN_MATCHES_TO_WIN = 3;
+
+// Count unique matches between entry numbers and winning numbers.
 const countMatches = (arr1, arr2) => {
-  return arr1.filter((num) => arr2.includes(num)).length;
+  const set1 = new Set(arr1);
+  const set2 = new Set(arr2);
+  let count = 0;
+
+  for (const num of set1) {
+    if (set2.has(num)) count += 1;
+  }
+
+  return count;
 };
 
-// 🏆 Main Logic
-const calculateWinners = async (draw, entries) => {
+// Main winner calculation logic.
+const calculateWinners = async (draw, entries, options = {}) => {
   const winningNumbers = draw.winningNumbers;
   const totalPool = draw.totalPool;
 
-  // 💰 Prize splits
+  // Prize splits.
   let prizePool = {
     match5: totalPool * 0.4,
     match4: totalPool * 0.35,
     match3: totalPool * 0.25,
   };
 
-  // 👥 Categorize winners
+  // Winners grouped by match count.
   const winners = {
     match5: [],
     match4: [],
     match3: [],
   };
 
-  // 🔍 Check each entry
-  for (let entry of entries) {
+  for (const entry of entries) {
     const matchCount = countMatches(entry.numbers, winningNumbers);
 
+    if (matchCount < MIN_MATCHES_TO_WIN) continue;
     if (matchCount === 5) winners.match5.push(entry);
     else if (matchCount === 4) winners.match4.push(entry);
     else if (matchCount === 3) winners.match3.push(entry);
   }
 
-  // 🔁 Handle rollover
+  // Handle rollover for empty categories.
   let rollover = 0;
 
   if (winners.match5.length === 0) {
@@ -51,7 +61,6 @@ const calculateWinners = async (draw, entries) => {
     prizePool.match3 = 0;
   }
 
-  // 💵 Distribute prizes equally per category
   const distribute = (pool, winnerList) => {
     if (winnerList.length === 0) return [];
     const prizeEach = pool / winnerList.length;
@@ -75,9 +84,8 @@ const calculateWinners = async (draw, entries) => {
     ...distribute(prizePool.match3, winners.match3),
   ];
 
-  // 💾 Save winners in DB
   if (finalWinners.length > 0) {
-    await Winner.insertMany(finalWinners);
+    await Winner.insertMany(finalWinners, { session: options.session });
   }
 
   return {
