@@ -6,15 +6,19 @@ const Entry = require("../models/Entry");
 
 // 📥 Get my entry
 router.get("/me", auth, async (req, res) => {
-  const now = new Date();
+  try {
+    const now = new Date();
 
-  const entry = await Entry.findOne({
-    userId: req.user._id,
-    drawMonth: now.getMonth() + 1,
-    drawYear: now.getFullYear(),
-  });
+    const entry = await Entry.findOne({
+      userId: req.user._id,
+      drawMonth: now.getMonth() + 1,
+      drawYear: now.getFullYear(),
+    });
 
-  res.json(entry || null);
+    res.json(entry || null);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 module.exports = router;
